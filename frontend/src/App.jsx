@@ -1,11 +1,16 @@
+import { Routes, Route } from 'react-router-dom';
+
 import Jobs from './Jobs';
+import MainPage from './components/MainPage';
+import Login from './components/Login';
 
 function App() {
   return (
-    <div>
-      <h1>Job Navigator</h1>
-      <Jobs />
-    </div>
+    <Routes>
+      <Route path="/" element={<MainPage />} />
+      <Route path="/jobs" element={<Jobs />} />
+      <Route path="/login" element={<Login />} />
+    </Routes>
   );
 }
 

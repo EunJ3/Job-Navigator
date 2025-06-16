@@ -1,7 +1,13 @@
+/* 모든 페이지 기본 */
 body {
   margin: 0;
-  background-color: #f0f2f5;
+  background-color: #ffffff; /* 기본은 흰 배경 */
   font-family: Arial, sans-serif;
+}
+
+/* 로그인 페이지에만 적용될 배경색 */
+body.login-page {
+  background-color: #f0f2f5;
 }
 
 .root {
@@ -96,7 +102,7 @@ input {
   align-items: center;
   background-color: white;
 }
-/* 구글 버튼 스타일 */
+
 .google {
   background-color: white;
   border: 1px solid #ccc;
@@ -107,25 +113,25 @@ input {
   height: 24px;
   object-fit: contain;
 }
+
 .talk img {
   width: 40px;
   height: 40px;
   object-fit: contain;
 }
+
 .naver img {
   width: 40px;
   height: 40px;
   object-fit: contain;
 }
 
-/* 네이버 버튼 스타일 */
 .naver {
   color: white;
   font-weight: bold;
   font-size: 25px;
 }
 
-/* 카카오 버튼 스타일 */
 .talk {
   background-color: #fee500;
   color: #381e1f;

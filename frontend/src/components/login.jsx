@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import './Login.css';
 
@@ -6,6 +6,14 @@ export default function Login() {
   const location = useLocation();
   const query = new URLSearchParams(location.search);
   const error = query.get('error');
+
+  // 페이지 진입 시 body에 클래스 부여 → 배경색 구분
+  useEffect(() => {
+    document.body.classList.add('login-page');
+    return () => {
+      document.body.classList.remove('login-page');
+    };
+  }, []);
 
   const login = () => {
     // 일반 로그인 처리 로직
@@ -47,25 +55,13 @@ export default function Login() {
             <label>-----------------간편 로그인----------------</label>
             <div className="total">
               <button className="naver" onClick={naverLogin}>
-                <img
-                  src="/naver.PNG" // 업로드한 이미지 경로
-                  alt="naver"
-                  style={{ width: '70px', height: '70px' }} // 필요시 크기 조절
-                />
+                <img src="/naver.PNG" alt="naver" />
               </button>
-
               <button className="google" onClick={googleLogin}>
-                <img
-                  src="https://developers.google.com/identity/images/g-logo.png"
-                  alt="google"
-                />
+                <img src="https://developers.google.com/identity/images/g-logo.png" alt="google" />
               </button>
-
               <button className="talk" onClick={kakaoLogin}>
-                <img
-                  src="https://developers.kakao.com/assets/img/about/logos/kakaolink/kakaolink_btn_medium.png"
-                  alt="kakao"
-                />
+                <img src="https://developers.kakao.com/assets/img/about/logos/kakaolink/kakaolink_btn_medium.png" alt="kakao" />
               </button>
             </div>
           </div>
