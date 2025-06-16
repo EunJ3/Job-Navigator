@@ -1,5 +1,6 @@
 import fitz # PyMuPDF
-def extact_text_from_pdf(pdf_path):
+
+def extract_text_from_pdf(pdf_path):
     """
     PDF 파일 경로를 받아서 전체 텍스트를 추출하는 함수
     """
