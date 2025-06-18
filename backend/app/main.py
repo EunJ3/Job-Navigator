@@ -3,6 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routes import job
 from app.services import job_service
 from app.core.config import load_env, get_settings
+from app.routes import auth
+from app.models.user import Base
+from app.core.database import engine
 
 # ✅ .env 파일 로드
 load_env()
@@ -23,10 +26,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-@app.on_event("startup")
-def startup_event():
-    job_service.load_sample_jobs()
+# DB 테이블 생성
+# PgAdmin에서 쿼리문으로 이미 테이블 생성했음 -> 주석처리해도 무관
+Base.metadata.create_all(bind=engine)
 
 
 @app.get("/")
@@ -35,3 +37,5 @@ def read_root():
 
 
 app.include_router(job.router, prefix="/api/v1/jobs", tags=["Jobs"])
+
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
