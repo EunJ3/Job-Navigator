@@ -3,7 +3,7 @@ from typing import List
 from collections import Counter
 from sentence_transformers import SentenceTransformer, util
 import numpy as np
-from tech_dict import TECH_STACK, JOB_TECH_MAP, TECH_EQUIVALENTS
+from ai.tech_dict import TECH_STACK, JOB_TECH_MAP, TECH_EQUIVALENTS
 
 
 # --- 정규화 함수 (띄어쓰기, 하이픈, 언더바 제거 + 소문자) ---
@@ -21,22 +21,17 @@ def normalize_tech_name(name: str) -> str:
 
 
 # --- 기술 중복 제거 (정규화 기준) ---
-def deduplicate_tech_stack(
-    raw_list: List[str], tech_stack: List[str] = TECH_STACK
-) -> List[str]:
-    norm_map = {}
-    for tech in tech_stack:
-        norm_key = normalize_tech_name(tech)
-        if norm_key not in norm_map:
-            norm_map[norm_key] = tech
-
-    found = set()
+def deduplicate_tech_stack(raw_list: List[str]) -> List[str]:
+    """
+    기술 리스트를 normalize 기준으로 중복 제거하고 표준 기술명으로 반환.
+    normalize된 키가 TECH_EQUIVALENTS에 매핑되면 표준명을, 없으면 원본 유지.
+    """
+    normalized = {}
     for tech in raw_list:
-        norm_key = normalize_tech_name(tech)
-        if norm_key in norm_map:
-            found.add(norm_map[norm_key])
-
-    return sorted(found)
+        norm = normalize_tech_name(tech)
+        if norm not in normalized:
+            normalized[norm] = tech  # fallback으로 raw 기술 유지
+    return sorted(set(normalized.values()))
 
 
 # --- 정확 일치 추출 ---
@@ -50,10 +45,12 @@ def extract_tech_keywords(text: str, tech_stack=TECH_STACK) -> List[str]:
 
 # --- 임베딩 기반 유사 추출 ---
 def embedding_based_matching(
-    text: str, tech_stack=TECH_STACK, threshold=0.75
+    text: str, tech_stack=TECH_STACK, threshold=0.6
 ) -> List[str]:
 
-    model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
+    model = SentenceTransformer(
+        "paraphrase-multilingual-MiniLM-L12-v2"
+    )  # "all-MiniLM-L6-v2"
     words = set(re.split(r"[^a-zA-Z0-9.#]+", text))
     words = [w for w in words if len(w) > 1]
     if not words:
@@ -75,7 +72,6 @@ def embedding_based_matching(
 def embedding_matching_with_combo(
     text: str, tech_stack=TECH_STACK, threshold=0.75
 ) -> List[str]:
-
 
     tech_norm_map = {}
     for t in tech_stack:
@@ -162,7 +158,6 @@ def filter_appeared_in_text(skills, text):
     norm_text = normalize(text)
     result = []
     for k in skills:
-        pattern = r"\b" + re.escape(k) + r"\b"
-        if re.search(pattern, text, re.IGNORECASE) or normalize(k) in norm_text:
+        if normalize(k) in norm_text:
             result.append(k)
     return result

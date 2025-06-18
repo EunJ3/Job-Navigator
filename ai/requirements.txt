@@ -3,3 +3,4 @@ keybert
 sentence-transformers
 scikit-learn
 PyMuPDF
+black
