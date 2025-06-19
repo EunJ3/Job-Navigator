@@ -680,3 +680,23 @@ def deduplicate_tech_stack(raw_list):
         if norm not in normalized:
             normalized[norm] = tech
     return sorted(set(normalized.values()))
+
+
+def get_job_mapping() -> dict:
+    """
+    크롤링 직무명을 4대 직무군으로 매핑
+    """
+    return {
+        "backend": "백엔드",
+        "fullstack": "백엔드",
+        "game": "백엔드",
+        "qa": "백엔드",
+        "security": "백엔드",
+        "robotics": "백엔드",
+        "embedded": "백엔드",
+        "frontend": "프론트엔드",
+        "design": "프론트엔드",
+        "mobile": "모바일",
+        "ai": "AI/ML",
+        "data": "AI/ML"
+    }
