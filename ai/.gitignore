@@ -27,3 +27,7 @@ htmlcov/
 # OS
 .DS_Store
 Thumbs.db
+
+
+# 테스트 자료
+tests/*.pdf
