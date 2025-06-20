@@ -27,3 +27,10 @@ htmlcov/
 # OS
 .DS_Store
 Thumbs.db
+<<<<<<< HEAD
+=======
+
+
+# 테스트 자료
+tests/*.pdf
+>>>>>>> main

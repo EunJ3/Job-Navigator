@@ -1,0 +1,34 @@
+/* 헤더 */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem 0.2rem;
+}
+
+.logo {
+  width: 120px;
+  height: 45px;
+  cursor: pointer;
+}
+
+.auth-links {
+  margin-top: 15px;
+  display: flex;
+}
+
+.auth-links .divider {
+  color: #999!important;
+  margin: -2.5px 1.2rem 0.6rem !important;
+}
+
+.auth-links a {
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.auth-links a:hover {
+  color: #1976d2;
+}

@@ -6,3 +6,9 @@ pydantic-settings
 black
 pytest
 httpx
+python-jose
+sqlalchemy
+pytest-mock
+google-auth[requests]
+psycopg2-binary
+pydantic[email]
