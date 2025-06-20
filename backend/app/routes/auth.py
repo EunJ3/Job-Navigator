@@ -1,14 +1,17 @@
-from fastapi import APIRouter, Depends, HTTPException
+# 파일명: app/routes/auth.py
+
+from fastapi import APIRouter, Depends, HTTPException, Body
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 from datetime import datetime, timedelta
-from jose import jwt
+from jose import jwt, JWTError
+from fastapi.security import OAuth2PasswordBearer
 import requests
 import os
 
-from app.core.database import SessionLocal
+from app.core.database import SessionLocal, get_db
 from app.models.user import User, UserCreate, UserResponse
 
 router = APIRouter()
@@ -40,7 +43,7 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
 
-# ✅ 1. Google 로그인
+# ✅ Google 로그인
 @router.post("/google-login", response_model=UserResponse)
 def google_login(request: UserCreate, db: Session = Depends(get_db)):
     try:
@@ -92,7 +95,7 @@ def google_login(request: UserCreate, db: Session = Depends(get_db)):
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid Google token")
 
-# ✅ 2. Kakao 로그인
+# ✅ Kakao 로그인 (Redirect 방식)
 @router.get("/kakao-login")
 def kakao_login():
     return RedirectResponse(
@@ -149,7 +152,7 @@ def kakao_callback(code: str, db: Session = Depends(get_db)):
     token = create_access_token(data={"user_id": user.user_id})
     return RedirectResponse(f"{FRONTEND_REDIRECT}?token={token}")
 
-# ✅ 3. Naver 로그인
+# ✅ Naver 로그인 (Redirect용 GET 방식)
 @router.get("/naver-login")
 def naver_login():
     return RedirectResponse(
@@ -207,3 +210,91 @@ def naver_callback(code: str, state: str, db: Session = Depends(get_db)):
 
     token = create_access_token(data={"user_id": user.user_id})
     return RedirectResponse(f"{FRONTEND_REDIRECT}?token={token}")
+
+# ✅ Naver 로그인 (프론트 POST 요청 처리용)
+@router.post("/naver-login", response_model=UserResponse)
+def naver_login_post(payload: dict = Body(...), db: Session = Depends(get_db)):
+    access_token = payload.get("access_token")
+    if not access_token:
+        raise HTTPException(status_code=400, detail="access_token 누락")
+
+    profile_res = requests.get(
+        "https://openapi.naver.com/v1/nid/me",
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+    if profile_res.status_code != 200:
+        raise HTTPException(status_code=400, detail="네이버 사용자 정보 요청 실패")
+
+    naver_info = profile_res.json()["response"]
+    naver_id = str(naver_info["id"])
+    email = naver_info.get("email") or f"{naver_id}@naver.com"
+    name = naver_info.get("name")
+    profile_image = naver_info.get("profile_image")
+
+    user = db.query(User).filter(
+        User.social_id == naver_id, User.social_provider == "naver"
+    ).first()
+    if not user:
+        user = User(
+            social_provider="naver",
+            social_id=naver_id,
+            email=email,
+            name=name,
+            profile_image=profile_image,
+            is_active=True,
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    token = create_access_token(
+        data={"user_id": user.user_id},
+        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
+    )
+
+    return {
+        "user_id": user.user_id,
+        "social_provider": user.social_provider,
+        "social_id": user.social_id,
+        "email": user.email,
+        "name": user.name,
+        "profile_image": user.profile_image,
+        "is_active": user.is_active,
+        "created_at": user.created_at,
+        "access_token": token,
+    }
+
+# ✅ JWT 기반 유저 정보 추출
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")  # 구조상 필수
+
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
+    try:
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        user_id = payload.get("user_id")
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="유효하지 않은 토큰입니다.")
+
+        user = db.query(User).filter(User.user_id == user_id).first()
+        if user is None:
+            raise HTTPException(status_code=401, detail="사용자를 찾을 수 없습니다.")
+
+        return user
+
+    except JWTError:
+        raise HTTPException(status_code=401, detail="토큰이 유효하지 않습니다.")
+
+# ✅ 토큰 유효성 확인 API (선택)
+@router.get("/verify-token", response_model=UserResponse)
+def verify_token(current_user=Depends(get_current_user)):
+    token = create_access_token(data={"user_id": current_user.user_id})
+    return {
+        "user_id": current_user.user_id,
+        "social_provider": current_user.social_provider,
+        "social_id": current_user.social_id,
+        "email": current_user.email,
+        "name": current_user.name,
+        "profile_image": current_user.profile_image,
+        "is_active": current_user.is_active,
+        "created_at": current_user.created_at,
+        "access_token": token,  # 다시 access_token 포함
+    }

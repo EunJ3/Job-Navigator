@@ -19,10 +19,10 @@ def test_google_login_invalid_token():
 @patch("app.routes.auth.id_token.verify_oauth2_token")
 def test_google_login_success(mock_verify_token):
     mock_verify_token.return_value = {
-        "sub": "mocked_google_id_12345",
-        "email": "googleuser@example.com",
-        "name": "구글 사용자",
-        "picture": "http://google.image.url",
+        "sub": "mocked_social_id_12345",
+        "email": "testuser@example.com",
+        "name": "테스트 사용자",
+        "picture": "http://test.image.url",
     }
 
     response = client.post(
@@ -30,7 +30,7 @@ def test_google_login_success(mock_verify_token):
     )
     assert response.status_code == 200
     data = response.json()
-    assert data["email"] == "googleuser@example.com"
+    assert data["email"] == "testuser@example.com"
     assert "access_token" in data
 
 # ✅ Kakao 로그인 테스트 ------------------------

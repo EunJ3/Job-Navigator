@@ -1,11 +1,11 @@
+// 📄 파일명: src/pages/MainPage.jsx
+
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Box, Divider, Stack, Button } from '@mui/material';
+import { Button } from '@mui/material';
 
 import './MainPage.css';
-import Header from '../components/Header';
 
-{/*이미지*/}
 import mainImage1 from '../assets/main_person1.png';
 import mainImage2 from '../assets/main_person2.png';
 import mainImage3 from '../assets/main_person3.png';
@@ -14,9 +14,6 @@ import mainImage4 from '../assets/main_person4.png';
 function MainPage() {
   return (
     <div className="main-container">
-      
-      <Header />
-
       {/* 이미지 섹션 */}
       <section className="image-section">
         <div className="image-container">
