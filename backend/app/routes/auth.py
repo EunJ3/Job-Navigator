@@ -10,6 +10,9 @@ from jose import jwt, JWTError
 from fastapi.security import OAuth2PasswordBearer
 import requests
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from app.core.database import SessionLocal, get_db
 from app.models.user import User, UserCreate, UserResponse

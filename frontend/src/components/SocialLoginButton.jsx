@@ -10,56 +10,80 @@ export default function SocialLoginButton({ setUserInfo }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // ✅ Google 초기화
-    if (window.google && GOOGLE_CLIENT_ID) {
-      window.google.accounts.id.initialize({
-        client_id: GOOGLE_CLIENT_ID,
-        callback: handleGoogleLogin,
-      });
-      window.google.accounts.id.renderButton(
-        document.getElementById("google-login-btn"),
-        { theme: "outline", size: "large", width: "250" }
-      );
-    }
+  // ✅ Google 초기화
+  if (window.google && GOOGLE_CLIENT_ID) {
+    window.google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: handleGoogleLogin,
+    });
+    window.google.accounts.id.renderButton(
+      document.getElementById("google-login-btn"),
+      { theme: "outline", size: "large", width: "250" }
+    );
+  }
 
-    // ✅ Naver 초기화
-    if (window.naver && NAVER_CLIENT_ID) {
-      const naverLogin = new window.naver.LoginWithNaverId({
-        clientId: NAVER_CLIENT_ID,
-        callbackUrl: `${window.location.origin}/login`,
-        isPopup: false,
-        loginButton: { color: "green", type: 3, height: "50" },
-      });
-      naverLogin.init();
-    }
+  // ✅ Naver 초기화
+  if (window.naver && NAVER_CLIENT_ID) {
+    const naverLogin = new window.naver.LoginWithNaverId({
+      clientId: NAVER_CLIENT_ID,
+      callbackUrl: `${window.location.origin}/login`,
+      isPopup: false,
+      loginButton: { color: "green", type: 3, height: "50" },
+    });
+    naverLogin.init();
+  }
 
-    // ✅ URL에서 토큰 추출 → 유저 정보 요청
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get("token");
+  // ✅ [NEW] 해시로부터 access_token 추출 (Naver용)
+  const hashParams = new URLSearchParams(window.location.hash.slice(1)); // # 제거
+  const naverAccessToken = hashParams.get("access_token");
 
-    if (token) {
-      localStorage.setItem("access_token", token);
-
-      // 👉 유저 정보 조회
-      fetch(`${API_BASE_URL}/api/v1/auth/verify-token`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+  if (naverAccessToken) {
+    // 👉 access_token을 백엔드로 전달
+    fetch(`${API_BASE_URL}/api/v1/auth/naver-login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ access_token: naverAccessToken }),
+    })
+      .then((res) => res.json())
+      .then((user) => {
+        localStorage.setItem("access_token", user.access_token);
+        localStorage.setItem("userInfo", JSON.stringify(user));
+        setUserInfo(user);
+        console.log("✅ 네이버 로그인 성공:", user);
+        navigate("/");
       })
-        .then((res) => res.json())
-        .then((user) => {
-          localStorage.setItem("userInfo", JSON.stringify(user));
-          setUserInfo(user);
-          console.log("✅ 로그인 성공:", user);
-          navigate("/");
-        })
-        .catch((err) => {
-          console.error("❌ 유저 정보 조회 실패:", err);
-          navigate("/");
-        });
-    }
-  }, []);
+      .catch((err) => {
+        console.error("❌ 네이버 로그인 실패:", err);
+        navigate("/");
+      });
+    return; // ✅ 중복 로그인 방지
+  }
+
+  // ✅ 기존 쿼리 파라미터 방식 (`?token=...`) 처리
+  const queryParams = new URLSearchParams(window.location.search);
+  const token = queryParams.get("token");
+
+  if (token) {
+    localStorage.setItem("access_token", token);
+    fetch(`${API_BASE_URL}/api/v1/auth/verify-token`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((user) => {
+        localStorage.setItem("userInfo", JSON.stringify(user));
+        setUserInfo(user);
+        console.log("✅ 로그인 성공:", user);
+        navigate("/");
+      })
+      .catch((err) => {
+        console.error("❌ 유저 정보 조회 실패:", err);
+        navigate("/");
+      });
+  }
+}, []);
 
   const handleGoogleLogin = async (response) => {
     const id_token = response.credential;

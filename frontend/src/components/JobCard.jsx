@@ -1,12 +1,21 @@
 import { useState } from 'react';
-import {Card,CardContent,Typography,Collapse,Divider,Chip,Stack,IconButton,Box} from '@mui/material';
+import {
+  Card,
+  CardContent,
+  Typography,
+  Collapse,
+  Divider,
+  Chip,
+  Stack,
+  IconButton,
+  Box,
+} from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 function JobCard({ job }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-
     <Card
       sx={{
         borderRadius: '16px',
@@ -17,20 +26,19 @@ function JobCard({ job }) {
         transition: '0.2s',
       }}
     >
-
       {/* ✅ 제목 + 아이콘 정렬박스 */}
       <Box
         display="flex"
         justifyContent="space-between"
         alignItems="center"
-        sx={{ flexWrap: 'nowrap' }} // 🔧 아이콘 밀림 방지
+        sx={{ flexWrap: 'nowrap' }}
       >
         {/* ✅ 제목, 회사, 마감일 */}
         <CardContent
           sx={{
-            flex: 1, // 🔧 공간 차지
-            paddingRight: 1, // 🔧 아이콘과 간격 확보
-            minWidth: 0, // 🔧 말줄임 허용
+            flex: 1,
+            paddingRight: 1,
+            minWidth: 0,
             cursor: 'pointer',
           }}
           onClick={() => setExpanded(!expanded)}
@@ -38,10 +46,10 @@ function JobCard({ job }) {
           <Typography
             variant="h6"
             fontWeight="bold"
-            noWrap={!expanded} // ✅ 접혔을 때만 말줄임
+            noWrap={!expanded}
             title={job.title}
             sx={{
-              whiteSpace: expanded ? 'normal' : 'nowrap', // ✅ 줄바꿈 허용
+              whiteSpace: expanded ? 'normal' : 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
             }}
@@ -64,7 +72,7 @@ function JobCard({ job }) {
             color: 'rgba(0, 0, 0, 0.4)',
             transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
             transition: '0.3s',
-            flexShrink: 0, // 🔧 좁아져도 밀리지 않게
+            flexShrink: 0,
           }}
         >
           <ExpandMoreIcon />
@@ -81,13 +89,14 @@ function JobCard({ job }) {
           <Typography variant="body2" gutterBottom>
             <strong>경력:</strong> {job.experience || '무관'}
           </Typography>
-          {job.tech_stack && (
+
+          {Array.isArray(job.tech_stack) && job.tech_stack.length > 0 && (
             <>
               <Typography variant="body2" gutterBottom>
                 <strong>기술 스택:</strong>
               </Typography>
               <Stack direction="row" spacing={1} flexWrap="wrap">
-                {job.tech_stack.split(',').map((tech, idx) => (
+                {job.tech_stack.map((tech, idx) => (
                   <Chip
                     key={idx}
                     label={tech.trim()}
