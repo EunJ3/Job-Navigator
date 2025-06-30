@@ -13,11 +13,13 @@ backend/
 │   ├── core/
 │   │   └── config.py        # 환경 설정 및 CORS 등 글로벌 설정
 │   ├── models/
+│   │   └── job.py           # SQLAlchemy ORM 모델 정의 (JobORM)
+│   ├── schemas/
 │   │   └── job.py           # Pydantic 모델 정의 (JobCreate, JobUpdate, JobOut)
 │   ├── routes/
 │   │   └── job.py           # 채용공고 관련 API 라우터 정의
 │   └── services/
-│       └── job_service.py   # 비즈니스 로직 및 임시 데이터 처리
+│       └── job_service.py   # 비즈니스 로직 및 DB 처리
 ├── tests/
 │   └── test_job.py          # job API 테스트 코드
 ├── requirements.txt         # Python 의존성 정의
@@ -36,9 +38,9 @@ backend/
   ↓
 [routes/job.py (라우팅)]
   ↓
-[services/job_service.py (데이터 처리)]
+[services/job_service.py (비즈니스 로직)]
   ↓
-[models/job.py (출력 직렬화)]
+[models/job.py + schemas/job.py (DB 모델 + 직렬화)]
   ↓
 응답 반환
 ```
@@ -48,29 +50,28 @@ backend/
 ## 🧰 주요 구성 요소 설명
 
 ### `main.py`
-
 * FastAPI 인스턴스를 생성하고 라우터를 등록합니다.
 * CORS 설정을 적용합니다 (`config.py`에서 설정값을 가져옴).
-* 서버 시작 시 `load_sample_jobs()`를 호출하여 임시 데이터 삽입.
 
 ### `routes/job.py`
-
 * `/api/v1/jobs` 경로에 대한 HTTP 라우팅 처리
 * GET, POST, PUT 등 API 엔드포인트를 정의하고 서비스 로직 호출
 
 ### `services/job_service.py`
-
-* `JOBS_DB` 리스트를 활용한 임시 인메모리 CRUD 처리
-* 샘플 데이터 로딩 함수 `load_sample_jobs()` 포함
+* SQLAlchemy를 이용해 DB CRUD 처리
+* 샘플 데이터 삽입 또는 필터링 로직 구현
 
 ### `models/job.py`
+* SQLAlchemy 기반 ORM 모델 정의 (`JobORM` 등)
+* 실제 DB 테이블 구조와 매핑됨
 
+### `schemas/job.py`
 * `JobCreate`: POST 요청에서 사용
 * `JobUpdate`: PUT 요청에서 사용
 * `JobOut`: 응답 데이터 직렬화에 사용
+* `JobListResponse`: 공고 리스트 (items)와 총 개수 (total_count)를 포함한 응답 스키마 (GET /jobs 응답 구조)
 
 ### `core/config.py`
-
 * `.env` 파일을 로드하고, `CORS_ALLOWED_ORIGINS`를 처리하는 함수 포함
 
 ---

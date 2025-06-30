@@ -102,23 +102,26 @@ pytest
 
 ---
 
-## 📁 디렉터리 구조 요약
+## 🧹 7. 데이터베이스 초기화 및 샘플 데이터 삽입
 
+FastAPI 앱이 사용할 데이터베이스를 초기화하고, 샘플 데이터를 삽입하는 스크립트를 제공합니다.
+
+### ✅ 초기 테이블 생성
+
+```bash
+python scripts/init_db.py
 ```
-backend/
-├── app/
-│   ├── core/              # 설정 관련 파일 (환경변수 등)
-│   ├── main.py            # FastAPI 앱 엔트리포인트
-│   ├── models/            # Pydantic 모델 정의
-│   ├── routes/            # API 라우터 정의
-│   └── services/          # 비즈니스 로직
-├── tests/                 # 테스트 코드
-├── requirements.txt       # Python 의존성 목록
-├── .env                   # 로컬 환경 변수 파일 (직접 생성)
-└── .venv/                 # Python 가상환경 (Git 제외)
+
+### ✅ 샘플 데이터 삽입
+
+```bash
+python scripts/seed_db.py
 ```
+
+> 💡 `.env`의 `DATABASE_URL` 설정이 정상이어야 위 명령이 작동합니다.
 
 ---
+
 
 ## ⚠️ 주의 사항
 

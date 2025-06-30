@@ -1,0 +1,47 @@
+/* 로그인 박스 */
+.social-login-wrapper {
+  max-width: 250px;
+  margin: 100px auto;
+  padding: 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 공통 버튼 */
+.social-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  height: 48px;
+  font-size: 14px;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  background: none;
+}
+
+/* 네이버 */
+.naver-img-button {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+
+
+
+/* 카카오 */
+.kakao-img-button {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+/* 구글은 직접 렌더링되므로 별도 스타일링 필요 없음 */

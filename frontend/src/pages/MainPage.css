@@ -33,6 +33,18 @@
   height: 280px;
 }
 
+/* 📱 모바일 전용 스타일 */
+@media (max-width: 600px) {
+  .image-container {
+    gap: 10px;            /* 갭 줄임 */
+    justify-content: center;
+  }
+
+  .image-container img {
+    width: 80px;
+    height: 200px;
+  }
+}
 /* 메시지 섹션 */
 .message-section {
   padding: 3rem 1rem;

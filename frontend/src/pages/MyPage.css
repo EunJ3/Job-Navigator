@@ -1,0 +1,36 @@
+.mypage-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.profile-card {
+  display: flex;
+  align-items: center;
+  padding: 1.5rem;
+  border-radius: 16px;
+}
+
+.section-card {
+  padding: 1.5rem;
+  border-radius: 16px;
+}
+
+.section-title {
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.chip-container {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.post-item {
+  margin-bottom: 1rem;
+}

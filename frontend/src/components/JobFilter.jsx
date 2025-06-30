@@ -8,8 +8,12 @@ import {
   Typography,
   Stack,
 } from '@mui/material';
+import { useMediaQuery, useTheme } from '@mui/material';
 
 const JobFilter = ({ filters, onChange }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   const [localFilters, setLocalFilters] = useState(filters);
 
   const handleChange = (key, value) => {
@@ -19,18 +23,19 @@ const JobFilter = ({ filters, onChange }) => {
   };
 
   return (
-    <Box sx={{ mb: 4, ml: 2, px: 2 }}>
-      <Stack direction="row" spacing={2} flexWrap="wrap">
+    <Box sx={{ mb: 4, px: 2, textAlign: 'left' }}>
+      <Stack
+        direction="row"
+        spacing={2}
+        sx={{ flexWrap: 'wrap', justifyContent: 'flex-start', padding: 0 }}
+      >
         {/* 직무유형 */}
-        <FormControl sx={{ minWidth: 150 }} size="small">
+        <FormControl sx={{ flex: 1, minWidth: 0, maxWidth: 120 }} size="small">
           <InputLabel>직무유형</InputLabel>
           <Select
             value={localFilters.job_type || ''}
             onChange={(e) => handleChange('job_type', e.target.value)}
             label="직무유형"
-            sx={{
-              paddingY: '5px',
-            }}
           >
             <MenuItem value="">전체</MenuItem>
             <MenuItem value="frontend">프론트엔드</MenuItem>
@@ -46,15 +51,13 @@ const JobFilter = ({ filters, onChange }) => {
         </FormControl>
 
         {/* 지역 */}
-        <FormControl sx={{ minWidth: 150 }} size="small">
+        <FormControl sx={{ flex: 1, minWidth: 0, maxWidth: 120 }} size="small">
           <InputLabel>지역</InputLabel>
           <Select
             value={localFilters.location || ''}
             onChange={(e) => handleChange('location', e.target.value)}
             label="지역"
-            sx={{
-              paddingY: '5px',
-            }}
+            sx={{}}
           >
             <MenuItem value="">전체</MenuItem>
             {[
@@ -84,15 +87,13 @@ const JobFilter = ({ filters, onChange }) => {
         </FormControl>
 
         {/* 경력 */}
-        <FormControl sx={{ minWidth: 150 }} size="small">
+        <FormControl sx={{ flex: 1, minWidth: 0, maxWidth: 120 }} size="small">
           <InputLabel>경력</InputLabel>
           <Select
             value={localFilters.experience || ''}
             onChange={(e) => handleChange('experience', e.target.value)}
             label="경력"
-            sx={{
-              paddingY: '5px',
-            }}
+            sx={{}}
           >
             <MenuItem value="">전체</MenuItem>
             <MenuItem value="무관">무관</MenuItem>

@@ -12,3 +12,5 @@ pytest-mock
 google-auth[requests]
 psycopg2-binary
 pydantic[email]
+python-multipart
+PyPDF2

@@ -12,6 +12,29 @@
   cursor: pointer;
 }
 
+@media (max-width: 640px) {
+  .logo {
+    width: 100px;
+    height: 38px;
+  }
+}
+
+@media (max-width: 640px) {
+  .header {
+    padding: 1rem 1rem 0.2rem; /* 좌우 패딩 줄임 */
+  }
+}
+
+.mobile-break {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .mobile-break {
+    display: inline;
+  }
+}
+
 .auth-links {
   margin-top: 15px;
   display: flex;

@@ -37,7 +37,9 @@ function Jobs() {
     if (filters.location) params.append('location', filters.location);
     if (search) params.append('tech_stack', search); // 또는 'keyword', 'query' 등 변경 가능
 
-    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/jobs?${params.toString()}`)
+    fetch(
+      `${import.meta.env.VITE_API_BASE_URL}/api/v1/jobs?${params.toString()}`
+    )
       .then((res) => res.json())
       .then((data) => {
         setJobs(data.items);
@@ -105,7 +107,17 @@ function Jobs() {
       {/* 📝 채용공고 카드 */}
       <Box display="flex" flexWrap="wrap" justifyContent="center" gap={3}>
         {jobs.map((job) => (
-          <Box key={job.id} sx={{ width: 400 }}>
+          <Box
+            key={job.id}
+            sx={{
+              width: {
+                xs: '100%', // 모바일
+                sm: '48%', // 태블릿
+                md: '400px', // 데스크탑
+              },
+              minWidth: '280px', // 너무 작아지지 않게 최소 너비 제한
+            }}
+          >
             <JobCard job={job} />
           </Box>
         ))}

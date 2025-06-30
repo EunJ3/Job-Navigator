@@ -1,0 +1,24 @@
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+env/
+venv/
+
+# IDE & Editor
+.vscode/
+.idea/
+
+# MLflow artifacts
+mlruns/
+
+# Local environment settings
+.env
+
+# Output files
+*.txt
+*.jsonl
+!data/*.jsonl
+

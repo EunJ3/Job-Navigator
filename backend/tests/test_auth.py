@@ -8,6 +8,7 @@ client = TestClient(app)
 
 # ✅ Google 로그인 테스트 ------------------------
 
+
 def test_google_login_invalid_token():
     response = client.post(
         "/api/v1/auth/google-login", json={"id_token_str": "invalid_token"}
@@ -33,7 +34,9 @@ def test_google_login_success(mock_verify_token):
     assert data["email"] == "testuser@example.com"
     assert "access_token" in data
 
+
 # ✅ Kakao 로그인 테스트 ------------------------
+
 
 @patch("app.routes.auth.requests.post")
 @patch("app.routes.auth.requests.get")
@@ -47,22 +50,21 @@ def test_kakao_login_success(mock_get, mock_post):
     mock_get.return_value.json.return_value = {
         "id": "kakao_mock_id_123",
         "kakao_account": {"email": "kakaouser@example.com"},
-        "properties": {
-            "nickname": "카카오유저",
-            "profile_image": "http://kakao.img"
-        }
+        "properties": {"nickname": "카카오유저", "profile_image": "http://kakao.img"},
     }
 
     response = client.request(
         method="GET",
         url="/api/v1/auth/kakao/callback?code=mock_code",
-        follow_redirects=False
+        follow_redirects=False,
     )
 
     assert response.status_code == 307
     assert response.headers["location"].startswith("http://localhost:5173/login?token=")
 
+
 # ✅ Naver 로그인 테스트 ------------------------
+
 
 @patch("app.routes.auth.requests.post")
 @patch("app.routes.auth.requests.get")
@@ -78,14 +80,14 @@ def test_naver_login_success(mock_get, mock_post):
             "id": "naver_mock_id_456",
             "email": "naveruser@example.com",
             "name": "네이버유저",
-            "profile_image": "http://naver.img"
+            "profile_image": "http://naver.img",
         }
     }
 
     response = client.request(
         method="GET",
         url="/api/v1/auth/naver/callback?code=mock_code&state=xyz",
-        follow_redirects=False
+        follow_redirects=False,
     )
     assert response.status_code == 307
     assert response.headers["location"].startswith("http://localhost:5173/login?token=")

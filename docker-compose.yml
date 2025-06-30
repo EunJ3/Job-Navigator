@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:17
+    container_name: job-navigator-db
+    restart: always
+    env_file:
+      - ./backend/.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/sql/20250627_db.sql:/docker-entrypoint-initdb.d/20250627_db.sql
+    ports:
+      - "5432:5432"
+
+  backend:
+    build:
+      context: ./backend
+    container_name: job-navigator-backend
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - db
+    volumes:
+      - ./backend/app:/app/app
+      - ./ai:/app/ai
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/app
+    command: >
+      sh -c "while ! nc -z db 5432; do sleep 1; done &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: job-navigator-frontend
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./frontend/.env
+    environment:
+      - NODE_ENV=production
+
+volumes:
+  postgres_data:

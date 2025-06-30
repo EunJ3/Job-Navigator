@@ -1,74 +1,38 @@
-# 사용자(User) 테이블의 DB 모델 정의 파일
+# 파일명: user.py
 
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, func
-from sqlalchemy.orm import declarative_base
-
-from pydantic import BaseModel, EmailStr, HttpUrl
-from typing import Optional
-from datetime import datetime
-
-Base = declarative_base()
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, func, UniqueConstraint
+from app.core.database import Base
 
 
-# User 테이블 정의
-class User(Base):
+# 사용자(User) 정보를 저장하는 SQLAlchemy ORM 모델입니다.
+class UserORM(Base):
     __tablename__ = "users"
 
-    """
-    user_id : 기본키
-    social_provider : 소셜 로그인 제공자 (ex: google, naver, kakao)
-    social_id : 소셜로그인 ID(소셜 플랫폼 고유 ID)
-    email : 사용자 이메일
-    name : 사용자 이름
-    profile_image = 프로필 이미지 URL
-    is_active : 계정 활성화 상태
-    create_at : 생성일
-    """
-
+    # 사용자 고유 ID (Primary Key)
     user_id = Column(Integer, primary_key=True, index=True)
+
+    # 소셜 로그인 제공자
     social_provider = Column(String(20), nullable=False)
-    social_id = Column(String(100), unique=True, nullable=False)
-    email = Column(String(100), unique=True, nullable=False)
+
+    # 소셜 로그인 ID
+    social_id = Column(String(100), nullable=False)
+
+    # 사용자 이메일
+    email = Column(String(100), nullable=False)
+
+    # 사용자 이름
     name = Column(String(100))
+
+    # 프로필 이미지 URL
     profile_image = Column(String(300))
+
+    # 계정 활성화 여부 (default: True)
     is_active = Column(Boolean, default=True)
+
+    # 생성일시
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-
-# 회원가입 요청 시 사용할 데이터 구조(사용자 생성 시 프론트에서 넘어오는 데이터 구조)
-class UserCreate(BaseModel):
-    id_token_str: str
-
-
-# DB에 저장된 사용자 데이터를 클라이언트로 반환할 때 사용되는 스키마
-class UserResponse(BaseModel):
-    user_id: int
-    social_provider: str
-    social_id: str
-    email: EmailStr
-    name: Optional[str] = None
-    profile_image: Optional[str] = None
-    is_active: bool
-    created_at: datetime
-    access_token: str
-
-    class Config:
-        from_attributes = True
-
-# 내 정보 조회 시 반환할 스키마
-class UserOut(BaseModel):
-    user_id: int
-    email: EmailStr
-    name: Optional[str] = None
-    profile_image: Optional[HttpUrl] = None
-    is_active: bool
-    created_at: datetime
-
-    class Config:
-        from_attributes = True
-
-# 사용자 정보 수정 시 사용되는 요청용 스키마
-class UserUpdate(BaseModel):
-    name: Optional[str] = None
-    profile_image: Optional[HttpUrl] = None
-    email: Optional[EmailStr] = None
+    # 복합 유니크 인덱스
+    __table_args__ = (
+        UniqueConstraint("social_provider", "social_id", name="uq_users_social"),
+    )

@@ -1,63 +1,37 @@
-from pydantic import BaseModel
-from typing import List, Optional
-from datetime import datetime
+# 파일명: job.py
+
 from sqlalchemy import Column, Integer, String, Text
-from sqlalchemy.orm import declarative_base
-
-# SQLAlchemy ORM
-Base = declarative_base()
+from sqlalchemy.dialects.postgresql import JSONB
+from app.core.database import Base
 
 
+# 채용 공고 정보를 저장하는 SQLAlchemy ORM 모델입니다.
 class JobORM(Base):
-    __tablename__ = "jumpit_jobs"
+    __tablename__ = "jobs"
 
-    id = Column(Integer, primary_key=True, index=True)
-    title = Column(String)
-    company = Column(String)
-    location = Column(String)
-    tech_stack = Column(Text)
-    url = Column(String)
-    due_date_text = Column(String)
-    job_type = Column(String)
+    # 공고 고유 ID (Primary Key, Auto Increment)
+    job_post_id = Column(Integer, primary_key=True, index=True)
 
+    # 공고 제목
+    title = Column(String, nullable=False)
 
-# ✅ 공통 속성 스키마
-class JobBase(BaseModel):
-    title: str
-    company: str
-    location: str
-    tech_stack: List[str]
-    url: str
-    due_date_text: Optional[str] = None
-    job_type: Optional[str] = None
+    # 회사명
+    company = Column(String, nullable=False)
 
+    # 근무 지역
+    location = Column(String, nullable=True)
 
-# ✅ 생성용
-class JobCreate(JobBase):
-    pass
+    # 경력 요건 (예: "신입", "1~3년")
+    experience = Column(String, nullable=True)
 
+    # 기술 스택 (예: ["Python", "Django", "AWS"])
+    tech_stack = Column(JSONB, nullable=True)
 
-# ✅ 수정용
-class JobUpdate(BaseModel):
-    title: Optional[str] = None
-    company: Optional[str] = None
-    location: Optional[str] = None
-    tech_stack: Optional[List[str]] = None
-    url: Optional[str] = None
-    due_date_text: Optional[str] = None
-    job_type: Optional[str] = None
+    # 마감일 텍스트 (예: "채용 시 마감")
+    due_date_text = Column(Text, nullable=True)
 
+    # 공고 URL
+    url = Column(String, unique=True, nullable=False)
 
-# ✅ 출력용
-class JobOut(JobBase):
-    id: int
-
-    class Config:
-        from_attributes = True  # ✅ Pydantic v2 기준 ORM 매핑
-        # orm_mode = True  # 🔁 v1에서는 사용했지만 v2에서는 위로 대체됨
-
-
-# ✅ 리스트 + 개수 반환 스키마
-class JobListResponse(BaseModel):
-    items: List[JobOut]
-    total_count: int
+    # 고용 형태 (예: "정규직", "계약직")
+    job_type = Column(String, nullable=True)
