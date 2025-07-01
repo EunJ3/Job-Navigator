@@ -12,6 +12,11 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sentence_transformers import SentenceTransformer
 from dotenv import load_dotenv
 
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parent.parent.parent))  # 프로젝트 루트 경로
+from ai.tech_extract import extract_tech_keywords_union, TECH_STACK
+
 # 환경 변수 로드 (.env에서 HF_TOKEN 불러오기)
 load_dotenv()
 
@@ -45,12 +50,15 @@ def extract_keywords(model_name, text, top_n=5, keybert_model=None):
         except Exception as e:
             print(f"[TextRank ERROR] {e} -> 문장: {text}")
             return []
+        
+    elif model_name == "TechPipeline":
+        return extract_tech_keywords_union(text, tech_stack=TECH_STACK)    
 
     else:
         raise ValueError(f"Unknown model: {model_name}")
 
 # 평가 함수
-def evaluate_keywords(predicted, actual):
+def evaluate_keywords(predicted, actual, top_k=5): # ✅ [TopK 추가]
     pred_set = set(predicted)
     true_set = set(actual)
     tp = len(pred_set & true_set)
@@ -59,7 +67,8 @@ def evaluate_keywords(predicted, actual):
     precision = tp / (tp + fp + 1e-10)
     recall = tp / (tp + fn + 1e-10)
     f1 = 2 * precision * recall / (precision + recall + 1e-10)
-    return precision, recall, f1
+    top_k_accuracy = int(len(set(predicted[:top_k]) & true_set) > 0) # ✅ [TopK 추가]
+    return precision, recall, f1, top_k_accuracy # ✅ [TopK 추가]
 
 # 실험 실행 함수
 def run_experiment(dataset_path, models):
@@ -73,12 +82,12 @@ def run_experiment(dataset_path, models):
         keybert_model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2", use_auth_token=hf_token)
 
     for model_name in models:
-        precisions, recalls, f1s, top_ns = [], [], [], []
+        precisions, recalls, f1s, top_ns, top_k_hits = [], [], [], [], [] # ✅ [TopK 추가]
         start_time = time.time()
         results = []
 
-        with mlflow.start_run(run_name=f"{model_name}_eval_v2"):
-            mlflow.log_param("dataset_version", "v1")
+        with mlflow.start_run(run_name=f"{model_name}_eval_v2with_topk"):
+            mlflow.log_param("dataset_version", "v2")
             mlflow.log_param("algorithm", model_name)
 
             for idx, item in enumerate(tqdm(data)):
@@ -94,11 +103,12 @@ def run_experiment(dataset_path, models):
                     top_n=top_n,
                     keybert_model=keybert_model
                 )
-                p, r, f1 = evaluate_keywords(predicted_keywords, true_keywords)
+                p, r, f1, top_k_hit = evaluate_keywords(predicted_keywords, true_keywords) # ✅ [TopK 추가]
 
                 precisions.append(p)
                 recalls.append(r)
                 f1s.append(f1)
+                top_k_hits.append(top_k_hit)  # ✅ [TopK 추가]
 
                 result = {
                     "sentence": sentence,
@@ -107,6 +117,7 @@ def run_experiment(dataset_path, models):
                     "precision": round(p, 4),
                     "recall": round(r, 4),
                     "f1": round(f1, 4),
+                    "top_5_hit": top_k_hit,  # ✅ [TopK 추가]
                 }
                 results.append(result)
 
@@ -115,12 +126,14 @@ def run_experiment(dataset_path, models):
                     print(f"Sentence       : {sentence}")
                     print(f"True Keywords  : {true_keywords}")
                     print(f"Predicted      : {predicted_keywords}")
-                    print(f"P={p:.2f}, R={r:.2f}, F1={f1:.2f}")
+                    print(f"P={p:.2f}, R={r:.2f}, F1={f1:.2f}, Top-5 Hit={top_k_hit}")  # ✅ [TopK 추가]
 
             avg_p = sum(precisions) / len(precisions)
             avg_r = sum(recalls) / len(recalls)
             avg_f1 = sum(f1s) / len(f1s)
             avg_top_n = sum(top_ns) / len(top_ns)
+            avg_top_k_acc = sum(top_k_hits) / len(top_k_hits)  # ✅ [TopK 추가]
+
             duration = time.time() - start_time
 
             mlflow.log_metric("avg_precision", avg_p)
@@ -128,7 +141,7 @@ def run_experiment(dataset_path, models):
             mlflow.log_metric("avg_f1", avg_f1)
             mlflow.log_metric("avg_top_n", avg_top_n)
             mlflow.log_metric("duration_sec", duration)
-
+            mlflow.log_metric("top5_accuracy", avg_top_k_acc)  # ✅ [TopK 추가]
             # 결과 저장
             result_path_txt = f"predicted_keywords_{model_name}.txt"
             result_path_jsonl = f"predicted_keywords_{model_name}.jsonl"
@@ -139,7 +152,7 @@ def run_experiment(dataset_path, models):
                     f_txt.write(f"[{idx+1}] {item['sentence']}\n")
                     f_txt.write(f"True     : {item['true_keywords']}\n")
                     f_txt.write(f"Pred     : {item['predicted_keywords']}\n")
-                    f_txt.write(f"P={item['precision']:.2f}, R={item['recall']:.2f}, F1={item['f1']:.2f}\n\n")
+                    f_txt.write(f"P={item['precision']:.2f}, R={item['recall']:.2f}, F1={item['f1']:.2f}, Top-5 Hit={item['top_5_hit']}\n\n")  # ✅ [TopK 추가]
                     f_jsonl.write(json.dumps(item, ensure_ascii=False) + "\n")
 
             mlflow.log_artifact(result_path_txt)
@@ -149,5 +162,5 @@ def run_experiment(dataset_path, models):
 
 
 if __name__ == "__main__":
-    models_to_run = ["TF-IDF", "KeyBERT", "TextRank"]  # 필요 시 YAKE도 추가 가능
-    run_experiment("data/keyword_dataset.v1.jsonl", models=models_to_run)
+    models_to_run = ["TF-IDF", "KeyBERT", "TextRank", "TechPipeline"]  # 필요 시 YAKE도 추가 가능
+    run_experiment("data/keywords_dataset.v2.jsonl", models=models_to_run)
